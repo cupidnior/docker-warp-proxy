@@ -1,5 +1,6 @@
 #!/bin/bash
 
+warp-cli --accept-tos registration delete
 (
 while ! warp-cli --accept-tos registration new; do
 	sleep 1
