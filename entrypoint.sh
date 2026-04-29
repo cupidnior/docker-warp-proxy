@@ -1,9 +1,9 @@
 #!/bin/bash
 
-warp-cli --accept-tos registration delete
 (
 while ! warp-cli --accept-tos registration new; do
 	sleep 1
+	warp-cli --accept-tos registration delete
 	>&2 echo "Awaiting warp-svc become online..."
 done
 warp-cli --accept-tos mode proxy
