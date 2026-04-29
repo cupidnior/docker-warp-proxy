@@ -1,11 +1,18 @@
 #!/bin/bash
 
+REGISTERED=$(warp-cli --accept-tos status --format json 2>/dev/null | grep -i '"registration"' )
+
+if echo "$REGISTERED" | grep -qi "missing"; then
+    echo "WARP is NOT registered"
+	while ! warp-cli --accept-tos registration new; do
+		sleep 1
+		>&2 echo "Awaiting warp-svc become online..."
+	done
+else
+    echo "WARP is registered"
+fi
 (
-while ! warp-cli --accept-tos registration new; do
-	sleep 1
-	warp-cli --accept-tos registration delete
-	>&2 echo "Awaiting warp-svc become online..."
-done
+
 warp-cli --accept-tos mode proxy
 warp-cli --accept-tos proxy port 40001
 
