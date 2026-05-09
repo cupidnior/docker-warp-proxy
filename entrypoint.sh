@@ -1,29 +1,44 @@
 #!/bin/bash
 
-REGISTERED=$(warp-cli --accept-tos status --format json 2>/dev/null | grep -i '"registration"' )
+set -e
 
-if echo "$REGISTERED" | grep -qi "missing"; then
-    echo "WARP is NOT registered"
-	while ! warp-cli --accept-tos registration new; do
-		sleep 1
-		>&2 echo "Awaiting warp-svc become online..."
-	done
-else
-    echo "WARP is registered"
-fi
-(
+SOCKS_PORT=${SOCKS_PORT:-40000}
+HTTP_PORT=${HTTP_PORT:-40001}
 
+echo "[*] Starting warp-svc..."
+warp-svc &
+
+sleep 5
+
+echo "[*] Registering WARP (first run only may take time)..."
+warp-cli --accept-tos registration new || true
+
+echo "[*] Setting WARP proxy mode..."
 warp-cli --accept-tos mode proxy
-warp-cli --accept-tos proxy port 40001
 
-if [ "$LICENSE" != "" ]; then
-	warp-cli --accept-tos registration license "$LICENSE"
-fi
+echo "[*] Setting SOCKS5 proxy port ${SOCKS_PORT}..."
+warp-cli --accept-tos proxy port ${SOCKS_PORT}
 
+echo "[*] Connecting WARP..."
 warp-cli --accept-tos connect
-socat TCP-LISTEN:40000,fork TCP:localhost:40001  # socat is used to redirect traffic from 40000 to 40001
-) &
 
-exec warp-svc
+sleep 5
 
+echo "[*] Configuring Privoxy..."
 
+cat >/etc/privoxy/config <<EOF
+listen-address  0.0.0.0:${HTTP_PORT}
+
+toggle 1
+enable-remote-toggle 0
+enable-remote-http-toggle 0
+
+accept-intercepted-requests 1
+
+forward-socks5t / 127.0.0.1:${SOCKS_PORT} .
+
+permit-access 0.0.0.0/0
+EOF
+
+echo "[*] Starting Privoxy..."
+privoxy --no-daemon /etc/privoxy/config
