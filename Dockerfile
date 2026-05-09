@@ -12,13 +12,9 @@ RUN apt-get update && \
         iproute2 \
         iptables \
         socat \
+        dnscrypt-proxy \
         net-tools && \
     rm -rf /var/lib/apt/lists/*
-
-RUN curl -L \
-    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 \
-    -o /usr/local/bin/cloudflared && \
-    chmod +x /usr/local/bin/cloudflared
 
 RUN mkdir -p /usr/share/keyrings && \
     curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | \
