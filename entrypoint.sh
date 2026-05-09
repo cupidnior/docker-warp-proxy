@@ -1,6 +1,15 @@
 #!/bin/bash
-
 set -e
+
+echo "[*] Starting cloudflared DoH..."
+
+cloudflared proxy-dns \
+  --address 127.0.0.1 \
+  --port 5053 &
+
+sleep 2
+
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
 
 SOCKS_PORT=${SOCKS_PORT:-40000}
 HTTP_PORT=${HTTP_PORT:-40002}
