@@ -15,8 +15,9 @@ RUN apt-get update && \
         net-tools && \
     rm -rf /var/lib/apt/lists/*
 
-RUN wget -O /usr/local/bin/cloudflared \
-    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 && \
+RUN curl -L \
+    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 \
+    -o /usr/local/bin/cloudflared && \
     chmod +x /usr/local/bin/cloudflared
 
 RUN mkdir -p /usr/share/keyrings && \
