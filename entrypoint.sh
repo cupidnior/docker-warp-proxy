@@ -21,7 +21,7 @@ warp-cli --accept-tos proxy port ${SOCKS_PORT}
 
 echo "[*] Connecting WARP..."
 warp-cli --accept-tos connect
-socat TCP-LISTEN:40000,fork,reuseaddr TCP:127.0.0.1:40001 &
+socat TCP-LISTEN:40001,fork,reuseaddr TCP:127.0.0.1:40000 &
 
 sleep 5
 
