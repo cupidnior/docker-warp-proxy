@@ -1,25 +1,34 @@
-ARG DEBIAN_RELEASE=trixie
-ARG LICENSE=''
-FROM docker.io/debian:$DEBIAN_RELEASE-slim
-ARG DEBIAN_RELEASE
-COPY entrypoint.sh /
+FROM debian:trixie-slim
+
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LICENSE=${LICENSE}
 
-RUN true && \
-	apt update && \
-	apt install -y gnupg ca-certificates curl socat
+RUN apt-get update && \
+    apt-get install -y \
+        curl \
+        gnupg \
+        ca-certificates \
+        privoxy \
+        procps \
+        iproute2 \
+        iptables \
+        net-tools && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN	curl https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \
-	ARCH="$(dpkg --print-architecture)" && \
-	echo "deb [arch=${ARCH} signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/  $DEBIAN_RELEASE main" | tee /etc/apt/sources.list.d/cloudflare-client.list && \
-	apt update && \
-	apt install cloudflare-warp -y --no-install-recommends
+RUN mkdir -p /usr/share/keyrings && \
+    curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | \
+    gpg --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] \
+    https://pkg.cloudflareclient.com/ bookworm main" \
+    > /etc/apt/sources.list.d/cloudflare-client.list && \
+    apt-get update && \
+    apt-get install -y cloudflare-warp && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN	apt remove -y curl && \
-	apt clean -y && \
-	rm -rf /var/lib/apt/lists/* && \
-	chmod +x /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 
-EXPOSE 40000/tcp
-ENTRYPOINT [ "/entrypoint.sh" ]
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 40000
+EXPOSE 40001
+
+ENTRYPOINT ["/entrypoint.sh"]
