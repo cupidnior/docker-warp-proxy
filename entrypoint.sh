@@ -44,4 +44,6 @@ echo "[*] Starting Privoxy..."
 privoxy --no-daemon /etc/privoxy/config
 
 cat >/etc/resolv.conf <<EOF
+
+
 EOF
