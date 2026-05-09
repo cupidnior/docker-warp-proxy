@@ -1,15 +1,19 @@
 #!/bin/bash
 set -e
 
-echo "[*] Starting cloudflared DoH..."
+echo "[*] Configuring encrypted DNS..."
 
-cloudflared proxy-dns \
-  --address 127.0.0.1 \
-  --port 5053 &
+# Force container DNS to local dnscrypt-proxy
+cat >/etc/resolv.conf <<EOF
+nameserver 127.0.0.1
+EOF
 
-sleep 2
+echo "[*] Starting dnscrypt-proxy..."
 
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
+dnscrypt-proxy \
+  -config /etc/dnscrypt-proxy/dnscrypt-proxy.toml &
+
+sleep 3
 
 SOCKS_PORT=${SOCKS_PORT:-40000}
 HTTP_PORT=${HTTP_PORT:-40002}
