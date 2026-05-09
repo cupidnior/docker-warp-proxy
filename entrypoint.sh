@@ -1,19 +1,27 @@
 #!/bin/bash
 set -e
 
-echo "[*] Configuring encrypted DNS..."
-
-# Force container DNS to local dnscrypt-proxy
-cat >/etc/resolv.conf <<EOF
-nameserver 127.0.0.1
-EOF
-
 echo "[*] Starting dnscrypt-proxy..."
 
 dnscrypt-proxy \
   -config /etc/dnscrypt-proxy/dnscrypt-proxy.toml &
 
-sleep 3
+echo "[*] Waiting for dnscrypt-proxy to initialize..."
+
+for i in $(seq 1 15); do
+    if ss -lun | grep -q ":53"; then
+        echo "[*] dnscrypt-proxy is listening"
+        break
+    fi
+
+    sleep 1
+done
+
+echo "[*] Switching container DNS to local DoH proxy..."
+
+cat >/etc/resolv.conf <<EOF
+nameserver 127.0.0.1
+EOF
 
 SOCKS_PORT=${SOCKS_PORT:-40000}
 HTTP_PORT=${HTTP_PORT:-40002}
