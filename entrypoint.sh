@@ -1,6 +1,47 @@
 #!/bin/bash
 set -e
 
+CONFIG_FILE="/config/dnscrypt-proxy.toml"
+
+mkdir -p /config
+
+cat > "$CONFIG_FILE" <<EOF
+server_names = ['cloudflare']
+
+listen_addresses = ['0.0.0.0:53']
+
+ipv6_servers = false
+
+require_dnssec = true
+require_nolog = true
+require_nofilter = true
+
+cache = false
+
+bootstrap_resolvers = ['1.1.1.1:53', '1.0.0.1:53']
+EOF
+
+echo "Starting dnscrypt-proxy with Cloudflare DoH upstream..."
+
+exec dnscrypt-proxy -config "$CONFIG_FILE" &
+
+echo "[*] Waiting for dnscrypt-proxy to initialize..."
+
+for i in $(seq 1 15); do
+    if ss -lun | grep -q ":53"; then
+        echo "[*] dnscrypt-proxy is listening"
+        break
+    fi
+
+    sleep 1
+done
+
+echo "[*] Switching container DNS to local DoH proxy..."
+
+cat >/etc/resolv.conf <<EOF
+nameserver 127.0.0.1
+EOF
+
 SOCKS_PORT=${SOCKS_PORT:-40000}
 HTTP_PORT=${HTTP_PORT:-40002}
 
