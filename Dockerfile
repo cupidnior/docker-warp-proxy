@@ -11,6 +11,7 @@ RUN apt-get update && \
         procps \
         iproute2 \
         iptables \
+        socat \
         net-tools && \
     rm -rf /var/lib/apt/lists/*
 
