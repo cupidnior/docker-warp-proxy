@@ -15,6 +15,10 @@ RUN apt-get update && \
         net-tools && \
     rm -rf /var/lib/apt/lists/*
 
+RUN wget -O /usr/local/bin/cloudflared \
+    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 && \
+    chmod +x /usr/local/bin/cloudflared
+
 RUN mkdir -p /usr/share/keyrings && \
     curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | \
     gpg --dearmor -o /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \
