@@ -3,7 +3,7 @@
 set -e
 
 SOCKS_PORT=${SOCKS_PORT:-40000}
-HTTP_PORT=${HTTP_PORT:-40001}
+HTTP_PORT=${HTTP_PORT:-40002}
 
 echo "[*] Starting warp-svc..."
 warp-svc &
@@ -21,6 +21,7 @@ warp-cli --accept-tos proxy port ${SOCKS_PORT}
 
 echo "[*] Connecting WARP..."
 warp-cli --accept-tos connect
+socat TCP-LISTEN:40000,fork,reuseaddr TCP:127.0.0.1:40001 &
 
 sleep 5
 
