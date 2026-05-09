@@ -12,7 +12,6 @@ RUN apt-get update && \
         iproute2 \
         iptables \
         socat \
-        dnscrypt-proxy \
         net-tools && \
     rm -rf /var/lib/apt/lists/*
 
